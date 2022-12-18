@@ -1,26 +1,87 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import axios from "axios";
+import { useState, useEffect } from "react";
+import "./App.css";
+import { WeatherData } from "./type/types";
+import styled from "styled-components";
+import InsertCityName from "./components/InsertCityName";
+import PrintWeather from "./components/PrintWeather";
+import Clouds from "./assets/cloud.jpg";
+import Clear from "./assets/clear.jpg";
+import Rain from "./assets/rain.jpg";
+import Drizzle from "./assets/drizzle.jpg";
+import Snow from "./assets/snow.jpg";
+import Thunderstorm from "./assets/thunderstorm.jpg";
 
-function App() {
+const weatherImg: { [key: string]: string } = {
+  Clouds: Clouds,
+  Clear: Clear,
+  Rain: Rain,
+  Drizzle: Drizzle,
+  Snow: Snow,
+  Thunderstorm: Thunderstorm,
+};
+
+const api = {
+  url: process.env.REACT_APP_API_URL,
+  api_key: process.env.REACT_APP_WEATHER_API_KEY,
+};
+
+const App = () => {
+  const [cityName, setCityName] = useState("seoul");
+  const [weather, setWeather] = useState<WeatherData>();
+  const [weatherName, setWeatherName] = useState("");
+
+  const getWeather = async () => {
+    const response = await axios.get(
+      `${api.url}?q=${cityName}&appid=${api.api_key}`
+    );
+
+    setWeather(response.data);
+    setWeatherName(response.data.weather[0].main);
+  };
+
+  console.log(weather);
+
+  useEffect(() => {
+    getWeather();
+  }, [cityName]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container img={weatherImg[weatherName]}>
+      <Box>
+        <ProjectTitle>{`WEATHER PROJECT`}</ProjectTitle>
+        <PrintWeather weather={weather} />
+        <InsertCityName setCityName={setCityName} />
+      </Box>
+    </Container>
   );
-}
+};
 
 export default App;
+
+interface ContainerProps {
+  img: string | undefined;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url(${(props) => props.img});
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.2s ease-in;
+`;
+const Box = styled.div`
+  text-align: center;
+  border: 3px solid white;
+  border-radius: 10px;
+  padding: 5rem;
+  background-color: rgba(255, 255, 255, 0.3);
+`;
+const ProjectTitle = styled.h1`
+  color: white;
+  margin: 1rem;
+`;
